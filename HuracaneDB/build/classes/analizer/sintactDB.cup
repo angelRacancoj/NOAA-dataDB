@@ -1,0 +1,45 @@
+package analizer;
+
+import java_cup.runtime.*;
+import structures.*;
+
+parser code {:
+
+	InfoManager hurDB = new InfoManager();
+
+	public void syntax_error(Symbol cur_token) {
+		String message = "Estructura invalida en posición " + cur_token.right
+			 + ", token: " + cur_token.value;
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<");	 
+		System.out.println(message);
+		System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+	}
+:}
+
+/* Terminal */
+terminal String  ENTERO, GRADES, RECORD_ID, STATUS_ID, END, CODE, NAME, COMA;
+
+/* Non terminal */
+non terminal DataRow RowInfo;
+non terminal HurRows DataIn;
+non terminal String InfoH, Huracane, Init;
+
+start with Init;
+
+Init 		::=  Huracane:e 			{: hurDB.createFile(e); :}
+			;
+
+Huracane 	::= InfoH:e1 Huracane:e2 	{: RESULT = hurDB.addAllRowsToCSV(e1,e2); :}
+				| InfoH:e				{: RESULT = e; :}
+				;
+
+InfoH 		::= CODE:e1 COMA NAME:e2 COMA ENTERO:e3 COMA COMA COMA COMA COMA DataIn:e4 {: RESULT = hurDB.getCSV(e1,e2,e3,e4); :}
+				;
+
+DataIn		::= DataIn:e1 RowInfo:e2 	{: RESULT = e1.addRow(e2); :}
+				| RowInfo:e		{: RESULT = new HurRows(e); :}
+				;
+
+RowInfo		::= ENTERO:e1 COMA ENTERO:e2 COMA RECORD_ID:e3 COMA STATUS_ID:e4 COMA GRADES:e5 COMA GRADES:e6 COMA ENTERO:e7 COMA ENTERO:e8	{: RESULT = new DataRow(e1,e2,e3,e4,e5,e6,e7,e8); :}
+				| ENTERO:e1 COMA ENTERO:e2 COMA COMA STATUS_ID:e4 COMA GRADES:e5 COMA GRADES:e6 COMA ENTERO:e7 COMA ENTERO:e8				{: RESULT = new DataRow(e1,e2,"NO",e4,e5,e6,e7,e8); :}
+				;
